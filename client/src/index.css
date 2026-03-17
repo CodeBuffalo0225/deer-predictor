@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-forest text-gray-200 font-body min-h-screen;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-forest-dark;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-bark rounded;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-bark-light;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blaze hover:bg-blaze-dark text-white font-heading uppercase tracking-wider px-6 py-3 rounded transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply bg-bark hover:bg-bark-light text-gray-200 font-heading uppercase tracking-wider px-6 py-3 rounded transition-colors duration-200 border border-bark-light;
+  }
+  .card {
+    @apply bg-forest-light border border-bark/30 rounded-lg p-4;
+  }
+  .input-field {
+    @apply bg-forest-dark border border-bark/50 rounded px-3 py-2 text-gray-200 focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber/50 w-full;
+  }
+  .label {
+    @apply text-amber font-mono text-xs uppercase tracking-widest mb-1 block;
+  }
+  .stat-value {
+    @apply font-mono text-2xl text-amber font-semibold;
+  }
+  .stat-label {
+    @apply font-mono text-xs text-gray-500 uppercase tracking-wider;
+  }
+  .nav-link {
+    @apply px-3 py-2 text-gray-400 hover:text-amber transition-colors font-heading uppercase text-sm tracking-wider;
+  }
+  .nav-link-active {
+    @apply px-3 py-2 text-amber border-b-2 border-amber font-heading uppercase text-sm tracking-wider;
+  }
+}
+
+/* Leaflet overrides for dark theme */
+.leaflet-container {
+  background: #0D1F0F;
+}
+.leaflet-popup-content-wrapper {
+  background: #1A3A1C;
+  color: #e5e7eb;
+  border: 1px solid rgba(59, 42, 26, 0.5);
+}
+.leaflet-popup-tip {
+  background: #1A3A1C;
+}

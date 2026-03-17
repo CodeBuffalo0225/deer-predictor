@@ -1,0 +1,17 @@
+{
+  "name": "deer-predictor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node --watch index.js",
+    "dev:client": "cd client && npx vite",
+    "db:migrate": "cd server && npx prisma migrate dev",
+    "db:seed": "cd server && node prisma/seed.js",
+    "db:reset": "cd server && npx prisma migrate reset --force",
+    "setup": "npm install && cd client && npm install && cd ../server && npm install && npx prisma migrate dev && node prisma/seed.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

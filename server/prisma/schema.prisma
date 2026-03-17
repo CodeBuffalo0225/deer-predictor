@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Property {
+  id              String   @id @default(uuid())
+  name            String
+  acreage         Float?
+  state           String?
+  county          String?
+  lat             Float?
+  lng             Float?
+  bounds          String?  // GeoJSON polygon
+  baseMapImage    String?
+  sanctuaryZones  String?  // JSON array of GeoJSON polygons
+  windPatternsByMonth String? // JSON: month -> prevailing directions
+  createdAt       DateTime @default(now())
+
+  seasons         Season[]
+  markers         PropertyMarker[]
+  photos          TrailCamPhoto[]
+  deer            Deer[]
+  sightings       Sighting[]
+  signObservations SignObservation[]
+  standLogs       StandIntrusionLog[]
+  reports         PredictionReport[]
+  briefings       WeeklyBriefing[]
+  doeGroups       DoeGroup[]
+}
+
+model Season {
+  id              String   @id @default(uuid())
+  propertyId      String
+  year            Int
+  label           String?
+  archeryOpen     DateTime?
+  archeryClose    DateTime?
+  gunOpen         DateTime?
+  gunClose        DateTime?
+  muzzleloaderOpen  DateTime?
+  muzzleloaderClose DateTime?
+  doeSeasonOpen   DateTime?
+  doeSeasonClose  DateTime?
+  notes           String?
+  foodSourceLog   String?  // JSON
+  mastCropRating  String?  // none|poor|good|exceptional
+  neighborPressureEvents String? // JSON array
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  photos          TrailCamPhoto[]
+  sightings       Sighting[]
+
+  @@unique([propertyId, year])
+}
+
+model PropertyMarker {
+  id              String   @id @default(uuid())
+  propertyId      String
+  type            String   // TRAIL_CAM, STAND, BLIND, etc.
+  label           String
+  lat             Float
+  lng             Float
+  notes           String?
+  windViableDirections String? // JSON array of compass directions
+  thermalBehavior String?  // JSON
+  entryRoutes     String?  // JSON array of marker IDs
+  exitRoutes      String?  // JSON array of marker IDs
+  restDaysRecommended Int?
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  photos          TrailCamPhoto[]
+  sightings       Sighting[]
+  signObservations SignObservation[]
+  standLogs       StandIntrusionLog[]
+}
+
+model SignObservation {
+  id              String   @id @default(uuid())
+  propertyId      String
+  markerId        String?
+  lat             Float?
+  lng             Float?
+  type            String   // scrape|rub|bed|track|hair|blood
+  observedAt      DateTime
+  season          Int
+  status          String   // fresh|active|cold|abandoned
+  rubSize         String?  // wrist|arm|thigh|telephone_pole
+  scrapeSize      String?  // small|medium|large|community
+  associatedDeerIds String? // JSON array
+  notes           String?
+  embedding       String?  // JSON float array
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  marker          PropertyMarker? @relation(fields: [markerId], references: [id])
+}
+
+model TrailCamPhoto {
+  id              String   @id @default(uuid())
+  propertyId      String
+  seasonId        String?
+  cameraMarkerId  String?
+  filePath        String
+  thumbPath       String?
+  capturedAt      DateTime?
+  season          Int?
+  temperature     Float?
+  barometricPressure Float?
+  pressureTrend   String?  // rising|falling|steady
+  moonPhase       String?
+  moonIllumination Float?
+  timeOfDay       String?  // pre_dawn|dawn|morning|midday|afternoon|dusk|night
+  detectedDeer    Boolean  @default(false)
+  deerCount       Int      @default(0)
+  deerAnalysis    String?  // JSON
+  notes           String?
+  taggedDeerIds   String?  // JSON array
+  embedding       String?  // JSON float array
+  rawExif         String?  // JSON
+  analysisStatus  String   @default("pending") // pending|processing|complete|failed
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  seasonRef       Season?  @relation(fields: [seasonId], references: [id])
+  cameraMarker    PropertyMarker? @relation(fields: [cameraMarkerId], references: [id])
+}
+
+model Deer {
+  id              String   @id @default(uuid())
+  propertyId      String
+  name            String
+  nickname        String?
+  species         String   @default("whitetail") // whitetail|mule|blacktail
+  sex             String   @default("unknown")   // buck|doe|unknown
+  estimatedAgeAtFirstSighting Float?
+  currentEstimatedAge Float?
+  antlerPoints    Int?
+  antlerDescription String?
+  distinguishingFeatures String?
+  status          String   @default("alive") // alive|harvested|unknown|relocated
+  harvestDate     DateTime?
+  harvestedBy     String?
+  notes           String?
+  coverImage      String?
+  isNocturnal     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  snapshots       DeerSeasonSnapshot[]
+}
+
+model DeerSeasonSnapshot {
+  id              String   @id @default(uuid())
+  deerId          String
+  season          Int
+  bestPhotoPath   String?
+  estimatedAge    Float?
+  antlerPoints    Int?
+  antlerDescription String?
+  estimatedScore  Float?
+  bodyConditionRating String? // poor|fair|good|excellent
+  peakWeightEstimate String?
+  totalSightings  Int      @default(0)
+  totalCamHits    Int      @default(0)
+  daylightHitPercent Float?
+  homeRangeDescription String?
+  aiAnnualSummary String?
+  growthDeltaNotes String?
+  embedding       String?  // JSON float array
+  createdAt       DateTime @default(now())
+
+  deer            Deer     @relation(fields: [deerId], references: [id], onDelete: Cascade)
+
+  @@unique([deerId, season])
+}
+
+model Sighting {
+  id              String   @id @default(uuid())
+  propertyId      String
+  seasonId        String?
+  deerIds         String?  // JSON array
+  type            String   @default("in_person") // trail_cam|in_person|sign_only
+  observedAt      DateTime
+  season          Int?
+  locationMarkerId String?
+  travelDirection String?  // N|NE|E|SE|S|SW|W|NW|unknown
+  behavior        String?  // feeding|traveling|bedded|chasing|tending|scraping|rubbing|alert|sparring|unknown
+  windDirection   String?
+  windSpeed       String?
+  temperature     Float?
+  barometricPressure Float?
+  pressureTrend   String?  // rising|falling|steady
+  moonPhase       String?
+  moonIllumination Float?
+  timeOfDay       String?  // pre_dawn|dawn|morning|midday|afternoon|dusk|dark
+  rutPhase        String?  // pre_rut|seeking|chasing|peak_rut|lockdown|post_rut|recovery
+  vegetationState String?  // green|early_color|peak_color|post_drop|bare|snow
+  huntingPressure String?  // none|low|moderate|high
+  doeGroupId      String?
+  notes           String?
+  photoIds        String?  // JSON array
+  embedding       String?  // JSON float array
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  seasonRef       Season?  @relation(fields: [seasonId], references: [id])
+  locationMarker  PropertyMarker? @relation(fields: [locationMarkerId], references: [id])
+}
+
+model DoeGroup {
+  id              String   @id @default(uuid())
+  propertyId      String
+  name            String
+  matriarchDeerIds String? // JSON array
+  estimatedSize   Int?
+  primaryFeedingMarkerId String?
+  primaryBeddingMarkerId String?
+  homeRangeDescription String?
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model StandIntrusionLog {
+  id              String   @id @default(uuid())
+  propertyId      String
+  standMarkerId   String
+  huntedAt        DateTime
+  season          Int?
+  windDirection   String?
+  windSpeed       String?
+  entryRoute      String?  // JSON array of marker IDs
+  exitRoute       String?  // JSON array of marker IDs
+  outcome         String?  // no_deer_seen|deer_seen_not_target|target_seen|target_harvested|deer_spooked|unknown
+  bumped          Boolean  @default(false)
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  standMarker     PropertyMarker @relation(fields: [standMarkerId], references: [id])
+}
+
+model PredictionReport {
+  id              String   @id @default(uuid())
+  propertyId      String
+  deerIds         String?  // JSON array
+  generatedAt     DateTime @default(now())
+  predictionWindowStart DateTime?
+  predictionWindowEnd   DateTime?
+  rutPhaseAtGeneration  String?
+  promptVersion   String?
+  narrativeReport String?
+  structuredOutput String? // JSON
+  confidenceScore Float?
+  userAccuracyRating String? // hit|partial|miss|unscored
+  userAccuracyNotes  String?
+  hitlConditions  String?  // JSON
+  ragSightingsUsed String? // JSON array
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model WeeklyBriefing {
+  id              String   @id @default(uuid())
+  propertyId      String
+  generatedAt     DateTime @default(now())
+  weekOf          DateTime
+  narrative       String?
+  newCamHits      Int      @default(0)
+  newSightings    Int      @default(0)
+  notableActivity String?
+  weekOutlook     String?
+  autoGenerated   Boolean  @default(true)
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model VectorEntry {
+  id              String   @id @default(uuid())
+  propertyId      String
+  sourceType      String   // sighting|photo|snapshot|sign|stand_log
+  sourceId        String
+  embedding       String   // JSON float array (384-dim)
+  metadata        String?  // JSON metadata for filtering
+  createdAt       DateTime @default(now())
+
+  @@index([propertyId, sourceType])
+}

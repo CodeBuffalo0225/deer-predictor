@@ -1,0 +1,30 @@
+# User data — never commit photos, database, or settings
+/data/
+server/data/
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets
+.env
+server/.env
+
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build output
+dist/
+client/dist/
+
+# Prisma
+server/prisma/migrations/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
