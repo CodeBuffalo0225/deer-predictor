@@ -83,4 +83,27 @@ export const api = {
 
   // Semantic search
   semanticSearch: (query, propertyId) => request('/seasonal/search', { method: 'POST', body: JSON.stringify({ query, propertyId }) }),
+
+  // Settings
+  getSettings: () => request('/settings'),
+  updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  updateSettingsSection: (section, data) => request(`/settings/${section}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Sign
+  updateSign: (id, data) => request(`/sign/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSign: (id) => request(`/sign/${id}`, { method: 'DELETE' }),
+
+  // Stands
+  updateStandLog: (id, data) => request(`/stands/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Doe Groups
+  createDoeGroup: (data) => request('/doe-groups', { method: 'POST', body: JSON.stringify(data) }),
+  updateDoeGroup: (id, data) => request(`/doe-groups/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Reports
+  getReports: (propertyId) => request(`/reports?propertyId=${propertyId || ''}`),
+  getReport: (id) => request(`/reports/${id}`),
+
+  // Briefings
+  getBriefings: (propertyId) => request(`/briefings?propertyId=${propertyId || ''}`),
 }

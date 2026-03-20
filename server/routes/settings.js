@@ -3,9 +3,37 @@ import { prisma } from '../index.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import settingsService from '../services/settingsService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const router = Router()
+
+// GET all settings
+router.get('/', (req, res) => {
+  try {
+    res.json(settingsService.getAll())
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// PUT update settings (partial merge)
+router.put('/', (req, res) => {
+  try {
+    res.json(settingsService.update(req.body))
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// PUT update a specific settings section
+router.put('/:section', (req, res) => {
+  try {
+    res.json(settingsService.update({ [req.params.section]: req.body }))
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 // POST save API key (writes to .env file)
 router.post('/api-key', async (req, res) => {
@@ -61,6 +89,7 @@ router.post('/reset', async (req, res) => {
     await prisma.season.deleteMany()
     await prisma.property.deleteMany()
 
+    settingsService.reset()
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -70,9 +99,9 @@ router.post('/reset', async (req, res) => {
 // POST load demo data
 router.post('/seed-demo', async (req, res) => {
   try {
-    // Dynamically import and run seed
     const { execSync } = await import('child_process')
     execSync('node prisma/seed.js', { cwd: path.join(__dirname, '..'), timeout: 30000 })
+    settingsService.set('firstRunComplete', true)
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })

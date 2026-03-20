@@ -6,15 +6,25 @@ import PropertyMap from './pages/PropertyMap'
 import TrailCams from './pages/TrailCams'
 import DeerProfiles from './pages/DeerProfiles'
 import SightingLog from './pages/SightingLog'
+import SignNetwork from './pages/SignNetwork'
+import StandTracker from './pages/StandTracker'
+import DoeGroupsPage from './pages/DoeGroupsPage'
+import ReportBuilder from './pages/ReportBuilder'
+import WeeklyBriefing from './pages/WeeklyBriefing'
 import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard' },
-  { path: '/map', label: 'Property Map' },
+  { path: '/map', label: 'Map' },
   { path: '/trail-cams', label: 'Trail Cams' },
-  { path: '/deer', label: 'Deer Profiles' },
-  { path: '/sightings', label: 'Sighting Log' },
+  { path: '/deer', label: 'Deer' },
+  { path: '/sightings', label: 'Sightings' },
+  { path: '/sign', label: 'Sign' },
+  { path: '/stands', label: 'Stands' },
+  { path: '/doe-groups', label: 'Does' },
+  { path: '/reports', label: 'Reports' },
+  { path: '/briefings', label: 'Briefings' },
   { path: '/settings', label: 'Settings' },
 ]
 
@@ -116,6 +126,11 @@ export default function App() {
           <Route path="/trail-cams" element={<TrailCams property={activeProperty} />} />
           <Route path="/deer" element={<DeerProfiles property={activeProperty} />} />
           <Route path="/sightings" element={<SightingLog property={activeProperty} />} />
+          <Route path="/sign" element={<SignNetwork property={activeProperty} />} />
+          <Route path="/stands" element={<StandTracker property={activeProperty} />} />
+          <Route path="/doe-groups" element={<DoeGroupsPage property={activeProperty} />} />
+          <Route path="/reports" element={<ReportBuilder property={activeProperty} />} />
+          <Route path="/briefings" element={<WeeklyBriefing property={activeProperty} />} />
           <Route path="/settings" element={
             <Settings
               property={activeProperty}
