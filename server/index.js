@@ -17,6 +17,7 @@ import reportsRouter from './routes/reports.js'
 import seasonalRouter from './routes/seasonal.js'
 import briefingsRouter from './routes/briefings.js'
 import settingsRouter from './routes/settings.js'
+import cameraMappingsRouter from './routes/cameraMappings.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -49,12 +50,39 @@ app.use('/api/reports', reportsRouter)
 app.use('/api/seasonal', seasonalRouter)
 app.use('/api/briefings', briefingsRouter)
 app.use('/api/settings', settingsRouter)
+app.use('/api/cameras/mappings', cameraMappingsRouter)
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Deer Predictor server running on port ${PORT}`)
+
+  // Start trail cam sync if enabled
+  try {
+    const { default: syncManager } = await import('./syncManager.js')
+    await syncManager.start()
+
+    // Expose sync status endpoint
+    app.get('/api/sync/status', (req, res) => {
+      res.json(syncManager.status())
+    })
+
+    // Manual upload endpoint via universal import
+    const multer = (await import('multer')).default
+    const upload = multer({ dest: path.join(__dirname, 'data', 'tmp') })
+    app.post('/api/import/upload', upload.array('photos', 50), async (req, res) => {
+      try {
+        const universalImport = syncManager.getUniversalImport()
+        const results = await universalImport.processUpload(req.body.cameraId, req.files || [])
+        res.json({ success: true, imported: results.length })
+      } catch (err) {
+        res.status(500).json({ error: err.message })
+      }
+    })
+  } catch (err) {
+    console.error('Sync manager initialization error:', err.message)
+  }
 })
